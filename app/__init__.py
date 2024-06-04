@@ -1,21 +1,56 @@
-from flask import Flask
-from flask_pymongo import PyMongo
+from datetime import datetime, timedelta
+from bson import json_util, ObjectId
+import os
+from json import JSONEncoder
 
-mongo = PyMongo()
+from flask import Flask, jsonify, request
+from app.db import get_db
+from flask_pymongo import pymongo
+
+from app.api.users import users_router
+
+db = get_db()
+
+
+class MongoJsonEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.strftime("%Y-%m-%d %H:%M:%S")
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        return json_util.default(obj, json_util.CANONICAL_JSON_OPTIONS)
 
 
 def create_app():
-    app = Flask(__name__)
-    app.config.from_object('config.Config')
 
-    mongo.init_app(app)
+    if db == None:
+        return {
+            "code": 500,
+            "details": "échec de la connexion à la bd"
+        }
+    APP_DIR = os.path.abspath(os.path.dirname(__file__))
+    STATIC_FOLDER = os.path.join(APP_DIR, 'build/static')
+    TEMPLATE_FOLDER = os.path.join(APP_DIR, 'build')
 
-    with app.app_context():
-        # Importer et enregistrer les blueprints
-        from .routes.user_routes import user_bp
-        from .routes.agent_routes import agent_router
+    app = Flask(__name__, static_folder=STATIC_FOLDER,
+                template_folder=TEMPLATE_FOLDER)
 
-        app.register_blueprint(user_bp)
-        app.register_blueprint(agent_router)
+    app.json_encoder = MongoJsonEncoder
+    app.register_blueprint(users_router)
+
+    @app.route('/', methods=['GET', 'POST'])
+    def serve():
+        if request.method == 'GET':
+            return jsonify({
+                "code": 200,
+                "message": "Hello world!"
+            })
 
     return app
+
+
+def register_error_handlers(app):
+    @app.errorhandler(pymongo.errors.PyMongoError)
+    def handle_mongo_error(error):
+        print(f"MongoDB error: {error}")
+        return jsonify({'error': 'An error occurred with the database.'}), 500
