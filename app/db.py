@@ -8,5 +8,5 @@ def get_db():
         client.admin.command('ping')
         return client.find_agent
     except Exception as e:
-        print("Error connecting to MongoDB:", e)
+        print("Error connecting to MongoDB:", e, "\n")
         return None
