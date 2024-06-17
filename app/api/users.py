@@ -54,7 +54,7 @@ def get_all_users():
         }), 500
 
 
-@users_router.route('/save', methods=['GET', 'POST'])
+@users_router.route('/agent/signup', methods=['GET', 'POST'])
 def save_user():
     try:
         utils = Utils()
@@ -145,7 +145,7 @@ def save_user():
         }), 400
 
 
-@users_router.route('/login', methods=["POST"])
+@users_router.route('/agent/login', methods=["POST"])
 def user_login():
     try:
         utils = Utils()
@@ -214,4 +214,75 @@ def user_login():
             'error': 'échec de connexion',
             'details': str(error),
             'type': "Exception"
+        }), 400
+
+
+@users_router.route('/super_user', methods=['GET', 'POST'])
+def save_user():
+    try:
+        utils = Utils()
+        data = request.get_json()
+        isDataValid = utils.dataValidator(
+            data, ['pwd_repeat', "username", "pwd", "is_root", "mobile_no"])
+
+        if isDataValid == False:
+            return {
+                'code': 400,
+                'message': 'certaines données sont manquante. Vérifiez si vous envoyer toutes ces clé : username, mobile_no, pwd, pwd_repeat',
+                'error': utils.error
+            }, 400
+        if utils.passwordVerify(data['pwd'], data['pwd_repeat']) == False:
+            return {
+                'code': 400,
+                'message': utils.error['details'],
+                'error': utils.error
+            }, 400
+
+        user_data = {
+            "username": data['username'],
+            "pwd": data['pwd'],
+            "is_root": data['is_root'] if data['is_root'] is not None else False,
+            "mobile_no": data['mobile_no']
+        }
+
+        user_data['pwd'] = hash_pwd(user_data['pwd'])
+        userModel = User(user_data)
+        existed_user = userModel.find({"username": data['username']})
+        if len(existed_user) > 0:
+            return {
+                "code": 400,
+                "message": "l'utilisateur avec ce nom existe déjà. Veuillez choisir un autre nom d'utilisateur",
+            }
+        existed_user = userModel.find({"mobile_no": data['mobile_no']})
+        if len(existed_user) > 0:
+            return {
+                "code": 400,
+                "message": "Ce numéro de téléphone existe déjà dans le système. Veuillez choisir un autre nom d'utilisateur"
+            }
+        userModel.save()
+        if userModel.error is not None:
+            return Response({
+                'code': 400,
+                'message': 'une erreur s\'est produite lors de la création du compte',
+                'error': userModel.error
+            }), 400
+
+        return Response({
+            "code": 200,
+            "data": user_data
+        })
+    except pymongo.errors.PyMongoError as e:
+        return jsonify({
+            'error': 'user not created',
+            'details': str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'error': 'user not created',
+            'details': str(e)
+        }), 400
+    except TypeError as error:
+        return jsonify({
+            'error': 'user not created',
+            'details': str(error)
         }), 400
