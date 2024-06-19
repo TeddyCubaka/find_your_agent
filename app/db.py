@@ -2,7 +2,7 @@ from pymongo import MongoClient
 
 
 def get_db():
-    uri = "mongodb+srv://teddy:birh-cub_04@woubou.gzzbgka.mongodb.net/?retryWrites=true&w=majority&appName=woubou"
+    uri = ""
     try:
         client = MongoClient(uri)
         client.admin.command('ping')
