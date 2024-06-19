@@ -55,7 +55,7 @@ def get_all_users():
 
 
 @users_router.route('/agent/signup', methods=['GET', 'POST'])
-def save_user():
+def save_agent():
     try:
         utils = Utils()
         data = request.get_json()

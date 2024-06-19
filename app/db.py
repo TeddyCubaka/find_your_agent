@@ -1,10 +1,9 @@
-from pymongo import MongoClient
-
+from pymongo.mongo_client import MongoClient
+from env import mongo_uri
 
 def get_db():
-    uri = ""
     try:
-        client = MongoClient(uri)
+        client = MongoClient(mongo_uri)
         client.admin.command('ping')
         return client.find_agent
     except Exception as e:
