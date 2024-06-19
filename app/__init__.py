@@ -8,6 +8,7 @@ from app.db import get_db
 from flask_pymongo import pymongo
 
 from app.api.users import users_router
+from app.api.agent import agents_router
 
 db = get_db()
 
@@ -37,6 +38,7 @@ def create_app():
 
     app.json_encoder = MongoJsonEncoder
     app.register_blueprint(users_router)
+    app.register_blueprint(agents_router)
 
     @app.route('/', methods=['GET', 'POST'])
     def serve():
