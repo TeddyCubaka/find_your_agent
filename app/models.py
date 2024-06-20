@@ -66,8 +66,8 @@ class Localisation(ModelInterface):
         super().__init__(validated_data)
 
 
-class horraire(ModelInterface):
-    collection = db['horraires']
+class Schedule(ModelInterface):
+    collection = db['Schedule']
 
     def __init__(self, validated_data=None):
         super().__init__(validated_data)

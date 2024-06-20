@@ -27,3 +27,24 @@ def get_all_users():
             'error': 'An error occurred while retrieving users.',
             'details': str(e)
         }), 500
+
+@agents_router.route('/arrive', methods=['POST'])
+def point_arrive():
+    try:
+        agentModel = Agent()
+        # documents = agentModel.find()
+        return Response({
+            "code": 200,
+            "users": agentModel.find_many()
+        }), 200
+
+    except pymongo.errors.PyMongoError as e:
+        return jsonify({
+            'error': 'An error occurred while retrieving users.',
+            'details': str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'error': 'An error occurred while retrieving users.',
+            'details': str(e)
+        }), 400

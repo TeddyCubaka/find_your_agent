@@ -22,24 +22,25 @@ class ModelInterface:
 
     def save(self):
         try:
-            if '_id' in self.data:
+            if "_id" in self.data:
                 self.collection.update_one(
-                    {'_id': self.data['_id']}, {'$set': self.data})
+                    {"_id": self.data["_id"]}, {"$set": self.data}
+                )
             else:
                 result = self.collection.insert_one(self.data)
-                self.data['_id'] = result.inserted_id
+                self.data["_id"] = result.inserted_id
         except pymongo.errors.PyMongoError as e:
             self.error = e
 
-    def delete(self):
-        if '_id' in self.data:
-            self.collection.delete_one({'_id': self.data['_id']})
+    def delete(self, id):
+        if "_id" != None:
+            self.collection.delete_one({"_id": ObjectId(id)})
         else:
             raise ValueError("Document must have an '_id' field to be deleted")
 
     @classmethod
     def find_by_id(cls, id):
-        data = cls.collection.find_one({'_id': ObjectId(id)})
+        data = cls.collection.find_one({"_id": ObjectId(id)})
         if data:
             return cls(data)
         return None
@@ -47,5 +48,5 @@ class ModelInterface:
     @classmethod
     def find(cls, query=None):
         documents = list(cls.collection.find(query))
-        return (documents)
+        return documents
         # return json.dumps(documents, cls=EnhancedJSONEncoder)
